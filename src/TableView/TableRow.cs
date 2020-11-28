@@ -7,8 +7,7 @@ namespace TableView
     public struct TableRow
     {
         public IEnumerable<string> Columns => columns;
-
-        public int TotalColumns => Columns.Count();
+        public int TotalColumns => Columns?.Count() ?? 0;
 
         private List<string> columns;
 
@@ -18,7 +17,7 @@ namespace TableView
         //}
 
         public TableRow(int columns)
-            : this(new string[columns])
+            : this(Enumerable.Repeat("", columns))
         {
         }
 
