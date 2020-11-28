@@ -2,13 +2,10 @@
 
 namespace TableView.Test
 {
-    class Program
     internal class Program
     {
-        static void Main(string[] args)
         private static void Main(string[] args)
         {
-            Console.WriteLine("Hello World!");
             Table table = new Table
             {
                 Margin = 1
@@ -24,5 +21,4 @@ namespace TableView.Test
             Console.ReadLine();
         }
     }
-}
 }
