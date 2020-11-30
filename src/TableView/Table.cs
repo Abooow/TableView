@@ -9,25 +9,43 @@ namespace TableView
 {
     public class Table
     {
-        public TableRow? Header { get; private set; }
+        public TableRow? Header
+        {
+            get => _header;
+            set => SetHeader(value);
+        }
+
+        private TableRow? _header;
         public IEnumerable<TableRow> Rows => rows;
-        public int Margin { get; set; }
+        public TableStyle TableStyle { get; set; }
+        public TextAlignment TextAlignment { get; set; }
         public int TotalRows { get; private set; }
         public int TotalColumns { get; private set; }
+
+        public int Margin
+        {
+            get => _margin;
+            set
+            {
+                if (value < 0)
+                    value = 0;
+                _margin = value;
+            }
+        }
+
+        private int _margin;
 
         private List<TableRow> rows;
         private List<int> columnWidths;
 
         public Table()
         {
-            this.rows = new List<TableRow>();
-            columnWidths = new List<int>();
+            Initialize(0, 0);
         }
 
         public Table(int columns, int rows)
         {
-            this.rows = new List<TableRow>(rows);
-            columnWidths = new List<int>(columns);
+            Initialize(columns, rows);
 
             for (int i = 0; i < rows; i++)
             {
@@ -37,8 +55,7 @@ namespace TableView
 
         public Table(IEnumerable<TableRow> rows)
         {
-            this.rows = new List<TableRow>(TotalRows);
-            columnWidths = new List<int>();
+            Initialize(0, rows.Count());
 
             foreach (TableRow row in rows)
             {
@@ -46,11 +63,20 @@ namespace TableView
             }
         }
 
-        public void SetHeader(TableRow header)
+        private void Initialize(int columns, int rows)
         {
-            Header = header;
+            this.rows = new List<TableRow>(rows);
+            columnWidths = new List<int>(columns);
+            TableStyle = TableStyle.BasicStyle;
+            TextAlignment = TextAlignment.Left;
+        }
 
-            HandleRow(header);
+        public void SetHeader(TableRow? header)
+        {
+            _header = header;
+
+            if (header != null)
+                HandleRow(header.Value);
         }
 
         public void AddRow(TableRow row)
@@ -61,52 +87,75 @@ namespace TableView
             HandleRow(row);
         }
 
-        public void Draw()
+        public string GetTableAsString(int letfMargin = 0)
         {
             StringBuilder sb = new StringBuilder(TotalColumns);
-            DrawLine(sb);
+
+            DrawLine(sb, TableStyle.Top, letfMargin);
             if (Header != null)
             {
-                DrawRow(sb, Header.Value);
-                DrawLine(sb);
+                DrawRow(sb, Header.Value, letfMargin);
+                DrawLine(sb, TableStyle.Middle, letfMargin);
             }
-            DrawRows(sb);
-            DrawLine(sb);
-            Console.Write(sb.ToString());
+            DrawRows(sb, letfMargin);
+            DrawLine(sb, TableStyle.Bottom, letfMargin);
+
+            return sb.ToString();
         }
 
-        private void DrawRows(StringBuilder sb)
+        public void Draw(int letfMargin = 0)
+        {
+            Console.Write(GetTableAsString(letfMargin));
+        }
+
+        private void DrawRows(StringBuilder sb, int letfMargin)
         {
             foreach (TableRow row in rows)
             {
-                DrawRow(sb, row);
+                DrawRow(sb, row, letfMargin);
             }
         }
 
-        private void DrawRow(StringBuilder sb, TableRow row)
+        private void DrawRow(StringBuilder sb, TableRow row, int letfMargin)
         {
+            sb.Append(' ', letfMargin);
             for (int i = 0; i < TotalColumns; i++)
             {
-                sb.Append('|');
+                sb.Append(TableStyle.Vertical);
                 sb.Append(' ', Margin);
                 if (i < row.TotalColumns)
-                    sb.Append(row.Columns.ElementAt(i).PadRight(columnWidths[i]));
+                    sb.Append(AlignText(row.Columns.ElementAt(i), columnWidths[i]));
                 else
                     sb.Append(' ', columnWidths[i]);
                 sb.Append(' ', Margin);
             }
-            sb.Append('|');
+            sb.Append(TableStyle.Vertical);
             sb.Append('\n');
         }
 
-        private void DrawLine(StringBuilder sb)
+        private void DrawLine(StringBuilder sb, TableStyle.EdgeStyle edge, int letfMargin)
         {
+            sb.Append(' ', letfMargin);
+            sb.Append(edge.Left);
             for (int i = 0; i < TotalColumns; i++)
             {
-                sb.Append('+');
-                sb.Append('-', columnWidths[i] + Margin * 2);
+                if (i != 0)
+                    sb.Append(edge.Middle);
+                sb.Append(TableStyle.Horizontal, columnWidths[i] + Margin * 2);
             }
-            sb.Append("+\n");
+            sb.Append(edge.Right);
+            sb.Append("\n");
+        }
+
+        private string AlignText(string text, int totalWidth)
+        {
+            return TextAlignment switch
+            {
+                TextAlignment.Left => text.PadRight(totalWidth),
+                TextAlignment.Center => text.PadCenter(totalWidth),
+                TextAlignment.Right => text.PadLeft(totalWidth),
+                _ => text.PadRight(totalWidth)
+            };
         }
 
         private void HandleRow(TableRow row)
@@ -123,6 +172,18 @@ namespace TableView
                 if (columnWidth > columnWidths[i])
                     columnWidths[i] = columnWidth;
             }
+        }
+
+        public static Table operator +(Table table, TableRow row)
+        {
+            table.AddRow(row);
+            return table;
+        }
+
+        public static Table operator +(Table table, IEnumerable<string> row)
+        {
+            table.AddRow(new TableRow(row));
+            return table;
         }
     }
 }

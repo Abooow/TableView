@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Text;
 
 namespace TableView.Test
 {
@@ -6,17 +7,20 @@ namespace TableView.Test
     {
         private static void Main(string[] args)
         {
+            Console.OutputEncoding = Encoding.UTF8;
+
             Table table = new Table
             {
-                Margin = 1
+                Margin = 2
             };
             table.SetHeader(new TableRow(new string[] { "Row", "Header 2", "Nothing." }));
 
-            table.AddRow(new TableRow(new string[] { "1", "Hello" }));
+            table += new TableRow(new string[] { "1", "Hello" });
+            table += new string[] { "Hey", "yo", "Man", "cool" };
             table.AddRow(new TableRow(new string[] { "2", "Hey", "Column 3" }));
             table.AddRow(new TableRow(new string[] { "3", "Hi", "Extra text", "New Column?" }));
 
-            table.Draw();
+            table.Draw(4);
 
             Console.ReadLine();
         }

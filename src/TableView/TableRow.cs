@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 
 namespace TableView
@@ -10,11 +9,6 @@ namespace TableView
         public int TotalColumns => Columns?.Count() ?? 0;
 
         private List<string> columns;
-
-        //public TableRow()
-        //{
-        //    columns = new List<string>();
-        //}
 
         public TableRow(int columns)
             : this(Enumerable.Repeat("", columns))
@@ -55,7 +49,7 @@ namespace TableView
         {
             columns.RemoveAll(x => x == content);
         }
-    
+
         public void RemoveColumn(int index)
         {
             columns.RemoveAt(index);
